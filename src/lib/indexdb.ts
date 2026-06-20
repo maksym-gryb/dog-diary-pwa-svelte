@@ -1,6 +1,7 @@
 const DB_NAME = 'dog-diary';
-export const STORE_NAME = 'pets';
-const DB_VERSION = 2;
+export const STORENAME_PETS = 'pets';
+export const STORENAME_ACTIVITIES = 'activities';
+const DB_VERSION = 4;
 
 let db: IDBDatabase | null = null;
 let dbPromise: Promise<IDBDatabase> | null = null;
@@ -16,8 +17,12 @@ export async function openDB(): Promise<IDBDatabase> {
         request.onupgradeneeded = () => {
             const database = request.result;
 
-            if (!database.objectStoreNames.contains(STORE_NAME)) {
-                database.createObjectStore(STORE_NAME, { keyPath: 'id' });
+            if (!database.objectStoreNames.contains(STORENAME_PETS)) {
+                database.createObjectStore(STORENAME_PETS, { keyPath: 'id', autoIncrement: true });
+            }
+
+            if (!database.objectStoreNames.contains(STORENAME_ACTIVITIES)) {
+                database.createObjectStore(STORENAME_ACTIVITIES, { keyPath: 'id', autoIncrement: true });
             }
         };
 

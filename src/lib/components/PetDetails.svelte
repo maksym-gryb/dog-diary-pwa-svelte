@@ -1,41 +1,59 @@
 <script lang="ts">
-    import { openDB } from "$lib/indexdb";
+    import { openDB, STORENAME_PETS } from "$lib/indexdb";
+    import { onMount } from "svelte";
 
     type Props = {
-        isCreate: bool;
-        petData: PetData;
+        isCreate: boolean;
+        petData?: PetData;
+        reloadDataCallback?: Function;
     };
 
-    let {isCreate, petData} = $props();
+    let { isCreate, petData, reloadDataCallback }: Props = $props();
 
-    const db = openDB();
+    let name = $state("");
+    name = petData && petData?.name ? petData.name : "";
 
-    function savePet(){
-        //
+    let db: IDBDatabase;
+
+    onMount(async () => {
+        db = await openDB();
+    });
+
+    function savePet() {
+        if (!name) {
+            console.error("missing data to save");
+            console.log(name);
+            return;
+        }
+
+        // if(petData && !petData.id) {
+        //     petData.id = crypto.randomUUID();
+        // }
+        const tx = db.transaction(STORENAME_PETS, "readwrite");
+        const store = tx.objectStore(STORENAME_PETS);
+
+        const req = store.add({
+            name: name,
+        });
+
+        req.onsuccess = () => reloadDataCallback?.();
+        req.onerror = (e) => console.log(e);
     }
 </script>
 
 {#if isCreate}
-<form onsubmit={(e) => {
-    e.preventDefault();
-    savePet();
-}}>
+    <fieldset>
+        <legend>
+            {isCreate ? "NEW PET" : name}
+        </legend>
 
-<fieldset>
-<legend>
-    {#if isCreate}
-    {/if}
-    {#if !isCreate}
-    {/if}
-</legend>
+        <label>
+            name:
+            <input type="text" bind:value={name} />
+        </label>
 
-<label>
-    name:
-    <!-- <input type="text" value="{petData?.name}"/> -->
-</label>
+        <br />
 
-</form>
-</fieldset>
-{#else}
-stuff
+        <button onclick={savePet}>save</button>
+    </fieldset>
 {/if}

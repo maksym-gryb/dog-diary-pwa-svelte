@@ -40,4 +40,10 @@
 	});
 </script>
 
+<style>
+	i {
+		font-size: 36px;
+	}
+</style>
+
 <i class="fa-solid {iconClass}"></i>

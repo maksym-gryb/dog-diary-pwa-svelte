@@ -1,32 +1,42 @@
-<script>
+<script lang="ts">
     import Loading from "$lib/components/Loading.svelte";
     import PetDetails from "$lib/components/PetDetails.svelte";
-    import { openDB, STORE_NAME } from "$lib/indexdb";
+    import PetSummary from "$lib/components/PetSummary.svelte";
+    import { openDB, STORENAME_PETS } from "$lib/indexdb";
     import { onMount } from "svelte";
 
     let loading = $state(true);
     let error = $state(false);
-    let results = $state([]);
+    let results = $state<any[]>([]);
+
+    let db: IDBDatabase;
 
     onMount(async () => {
-        const db = await openDB();
+        db = await openDB();
 
-        const tx = db.transaction(STORE_NAME, "readonly");
-        const store = tx.objectStore(STORE_NAME);
+        loadPetData();
+    });
+
+    function loadPetData(){
+        console.log("...loading all pets")
+        const tx = db.transaction(STORENAME_PETS, "readonly");
+        const store = tx.objectStore(STORENAME_PETS);
 
         const req = store.getAll();
 
         req.onsuccess = () => {
+            console.log("LOADED: " + req.result.length + " pets")
             loading = false;
             results = req.result;
         };
 
         req.onerror = (ev) => {
+            console.error("FAILED TO LOAD PETS")
             loading = false;
             error = true;
             console.log(ev);
         };
-    });
+    }
 </script>
 
 {#if loading}
@@ -39,11 +49,11 @@
 
 <ul>
     {#each results as r}
-        <li>{r.id}</li>
+        <PetSummary data={r} />
     {/each}
 </ul>
 
 <!-- if there are no results, means user/pet setup is requried -->
 {#if results.length == 0}
-    <PetDetails newPet=true />
+    <PetDetails isCreate={true} reloadDataCallback={loadPetData} />
 {/if}
