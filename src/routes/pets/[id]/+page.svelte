@@ -3,8 +3,8 @@
     import ActivityIcon from "$lib/components/ActivityIcon.svelte";
     import { activityTypes, createIcon } from "$lib/data/activityTypes";
     import { openDB, STORENAME_ACTIVITIES, STORENAME_PETS } from "$lib/indexdb";
-    import { getDefaultAutoSelectFamilyAttemptTimeout } from "net";
     import { onMount } from "svelte";
+    import { preventDefault } from "svelte/legacy";
 
     const petId = page.params.id;
 
@@ -21,8 +21,8 @@ let activitySet = $derived.by(() => {
 });
 
     const timeslotFormat = (d: Date) =>
-        d.toLocaleTimeString(undefined, {
-            hour: "numeric",
+        d.toLocaleTimeString('de-DE', {
+            hour: "2-digit",
             minute: "2-digit"
         });
 
@@ -32,24 +32,10 @@ let activitySet = $derived.by(() => {
     let loading = true;
     let error = false;
 
+    let scrollTarget: HTMLElement | null = null;
+
     let db : IDBDatabase;
     onMount(async () => {
-        // setup timeslot onclick toggle
-        document.querySelectorAll('.timeslot').forEach((timeslot) => {
-            timeslot.addEventListener('click', () => {
-                console.log("CLICKED" + timeslot)
-                const shouldBeOpened = !timeslot.classList.contains('open');
-
-                document.querySelectorAll('.timeslot.open').forEach((other) => {
-                    other.classList.remove('open');
-                });
-
-                if(shouldBeOpened) {
-                    timeslot.classList.add('open')
-                }
-            });
-        });
-
         // indexdbsetup
         db = await openDB();
 
@@ -70,7 +56,15 @@ let activitySet = $derived.by(() => {
             error = true;
             console.log(ev);
         };
+
+        // scroll to current time
+        scrollToCurrentTimeslot();
     });
+
+    function scrollToCurrentTimeslot() {
+        scrollTarget = document.getElementById(nearestTimeslots[0].replace(":", "_"));
+        scrollTarget?.scrollIntoView({ behavior: "smooth" });
+    }
 
     function toggleActivity(date:string, time:string, act:string) {
         const existing = activities.filter(a => a.date == date && a.time == time && a.activity == act);
@@ -129,6 +123,12 @@ let activitySet = $derived.by(() => {
     }
 
     const nearestTimeslots = nearestTimeslotsToNow();
+    console.log(nearestTimeslots);
+
+    let openTimeslot: string = $state("");
+    function toggleTimeslot(selectedTimeslot: string) {
+        openTimeslot = openTimeslot === selectedTimeslot ? "" : selectedTimeslot;
+    }
 
 </script>
 
@@ -153,10 +153,13 @@ let activitySet = $derived.by(() => {
 .timeslot {
   display: grid;
   grid-template-columns: 1fr 11fr;
-  width: 100%
-  /* flex-direction: row;
-  align-items: center; */
-  /* gap: 15px; */
+  width: 100%;
+  border-top: 2px solid black;
+}
+
+.timeslot:hover {
+    background-color: #334433;
+    cursor: pointer;
 }
 
 .timeslot.open {
@@ -174,8 +177,8 @@ let activitySet = $derived.by(() => {
 
 }
 
-.timeslot.active {
-    background-color: aqua;
+.timeslot.current {
+    background-color: rgb(33, 116, 116);
 }
 
 .timeslot.open .timeslot-activities {
@@ -197,18 +200,37 @@ let activitySet = $derived.by(() => {
 .timeslot.open .activity-container {
     display: inline-block;
 }
+
+.activity-container.active > button {
+    background-color: brown;
+}
 </style>
 
 {#each Array.from({ length: 24*2 }, (_, i) => i) as i}
     { let minute = (i % 2 * 30).toString(); }
     { let hour = Math.floor(i / 2).toString(); }
     { let timeslot = `${leftPad(hour.toString())}:${leftPad(minute.toString())}`; }
-    <div class="timeslot {nearestTimeslots.includes(timeslot) ? "current" : ""}">
+    <!-- TODO -->
+    <!-- svelte-ignore a11y_click_events_have_key_events -->
+    <!-- svelte-ignore a11y_no_static_element_interactions -->
+    <div id={timeslot.replace(":", "_")}
+     class={[
+        "timeslot",
+        nearestTimeslots.includes(timeslot) && "current",
+        openTimeslot === timeslot && "open"
+        ]}
+        onclick={() => toggleTimeslot(timeslot)}>
         <span class="timeslot-time">{timeslot}</span>
         <span class="timeslot-activities">
             {#each activityTypes as act}
-                <span class="activity-container {isActive(date, timeslot, act) ? 'active' : ''}">
-                    <button onclick={() => toggleActivity(date, timeslot, act)}>
+                <span class={[
+                    "activity-container",
+                    isActive(date, timeslot, act) && 'active'
+                    ]}>
+                    <button onclick={(e) => {
+                        e.stopPropagation();
+                        toggleActivity(date, timeslot, act);
+                        }}>
                         <ActivityIcon activityType={act} />
                     </button>
                 </span>
