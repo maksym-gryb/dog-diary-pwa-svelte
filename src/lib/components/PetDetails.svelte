@@ -15,8 +15,11 @@
 
     let db: IDBDatabase;
 
-    onMount(async () => {
-        db = await openDB();
+    onMount(() => {
+        const dbr = openDB();
+
+        dbr.onsuccess = () => db = dbr.result;
+        dbr.onerror = (e) => console.log(e);
     });
 
     function savePet() {

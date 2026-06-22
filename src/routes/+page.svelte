@@ -19,8 +19,6 @@
 
             loadPetData();
         };
-
-        loadPetData();
     });
 
     function loadPetData() {
