@@ -203,6 +203,10 @@
     });
 </script>
 
+<h1>
+    {date}
+</h1>
+
 {#each timeslots as timeslot}
     <!-- TODO -->
     <!-- svelte-ignore a11y_click_events_have_key_events -->
@@ -244,6 +248,10 @@
 {/each}
 
 <style>
+    h1 {
+        text-align: center;
+    }
+
     .timeslot-time {
         padding: 0.5rem;
         width: 100%;
@@ -290,7 +298,7 @@
     }
 
     .timeslot.current {
-        background-color: rgb(0, 0, 0, 0);
+        background-color: rgb(33, 116, 116);
     }
 
     .timeslot .activity-container {
