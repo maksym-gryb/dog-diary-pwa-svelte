@@ -7,5 +7,6 @@ type PetActivity = {
     date: string,
     time: string,
     syncStatus?: string,
-    timestamp?: number
+    timestamp?: number,
+    isDeleted?: boolean
 }

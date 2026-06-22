@@ -11,27 +11,33 @@
 
     let db: IDBDatabase;
 
-    onMount(async () => {
-        db = await openDB();
+    onMount(() => {
+        const request = openDB();
+
+        request.onsuccess = () => {
+            db = request.result;
+
+            loadPetData();
+        };
 
         loadPetData();
     });
 
-    function loadPetData(){
-        console.log("...loading all pets")
+    function loadPetData() {
+        console.log("...loading all pets");
         const tx = db.transaction(STORENAME_PETS, "readonly");
         const store = tx.objectStore(STORENAME_PETS);
 
         const req = store.getAll();
 
         req.onsuccess = () => {
-            console.log("LOADED: " + req.result.length + " pets")
+            console.log("LOADED: " + req.result.length + " pets");
             loading = false;
             results = req.result;
         };
 
         req.onerror = (ev) => {
-            console.error("FAILED TO LOAD PETS")
+            console.error("FAILED TO LOAD PETS");
             loading = false;
             error = true;
             console.log(ev);
