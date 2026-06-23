@@ -4,10 +4,16 @@
     };
 
     let { data }: Props = $props();
+
+    function formatDate (d: Date) : string {
+        return d.toISOString().slice(0, 10);
+    }
+
+    const todayStr :string = formatDate(new Date());
 </script>
 
 <fieldset>
-    <legend><a href="/pets/{data.id}"> {data.name}</a> </legend>
+    <legend><a href="/pets/{data.id}/{todayStr}"> {data.name}</a> </legend>
     <div>
         owners :
         {#if data.owners?.length ?? 0 === 0}

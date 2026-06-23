@@ -5,7 +5,25 @@
     import { openDB, STORENAME_ACTIVITIES } from "$lib/indexdb";
     import { onMount } from "svelte";
 
-    const petId = page.params.id;
+    type RouteParams = {
+        id: string;
+        date: string;
+    };
+
+    const petId = $derived(() => (page.params as RouteParams).id);
+    const dateStr = $derived(() => (page.params as RouteParams).date);
+
+    const date = $derived(() => new Date(dateStr()));
+    const prevDate = $derived(() => {
+        let d = date();
+        d.setDate(d.getDate() - 1)
+        return d;
+    });
+    const nextDate = $derived(() => {
+        let d = date();
+        d.setDate(d.getDate() + 1)
+        return d;
+    });
 
     let activities = $state<any[]>([]);
 
@@ -25,7 +43,9 @@
             minute: "2-digit",
         });
 
-    const date = "2026-06-20";
+    function formatDate (d: Date) : string {
+        return d.toISOString().slice(0, 10);
+    }
 
     let loading = true;
     let error = false;
@@ -61,7 +81,7 @@
                 handleVisibilityChange,
             );
 
-          window.removeEventListener("load", scrollToCurrentTimeslot);
+            window.removeEventListener("load", scrollToCurrentTimeslot);
         };
     });
 
@@ -119,7 +139,7 @@
                     time: activity.time,
                     date: activity.date,
                     activity: activity.activity,
-                    petId: petId,
+                    petId: petId(),
                     isDeleted: true,
                 });
             }
@@ -140,7 +160,7 @@
                 time: time,
                 date: date,
                 activity: act,
-                petId: petId,
+                petId: petId(),
             });
 
             req.onsuccess = (ev) => {
@@ -152,7 +172,7 @@
                         time: time,
                         date: date,
                         activity: act,
-                        petId: petId,
+                        petId: petId(),
                     },
                 ];
 
@@ -204,7 +224,9 @@
 </script>
 
 <h1>
-    {date}
+    <a href="/pets/{petId()}/{formatDate(prevDate())}" class="date-nav-btn" aria-label="Back">&#9664</a>
+    <span>{formatDate(date())}</span>
+    <a href="/pets/{petId()}/{formatDate(nextDate())}" class="date-nav-btn" aria-label="Forward">&#9654</a>
 </h1>
 
 {#each timeslots as timeslot}
@@ -226,14 +248,14 @@
                 <span
                     class={[
                         "activity-container",
-                        isActive(date, timeslot, act) && "active",
+                        isActive(formatDate(date()), timeslot, act) && "active",
                     ]}
                 >
                     {#if openTimeslot === timeslot}
                         <button
                             onclick={(e) => {
                                 e.stopPropagation();
-                                toggleActivity(date, timeslot, act);
+                                toggleActivity(formatDate(date()), timeslot, act);
                             }}
                         >
                             <ActivityIcon activityType={act} />
@@ -290,8 +312,6 @@
         /* background-color: rgb(218, 184, 121); */
         display: flex;
         border-radius: 4px;
-
-        display: flex;
         justify-content: flex-start;
         gap: 1rem;
         padding: 0.5rem;
@@ -320,8 +340,26 @@
     }
 
     button {
-        border: none;
+        border: 0px;
+        padding: 0px;
+        margin: 0px;
         background-color: none;
         background-color: rgb(0, 0, 0, 0);
+    }
+
+    .date-nav-btn {
+        color: aliceblue;
+        font-size: 30px;
+        border: none;
+        background: none;
+        cursor: pointer;
+        text-decoration: none;
+    }
+
+    h1 {
+        display: flex;
+        justify-content: center;
+        gap: 1.5rem;
+        padding: 0.5rem;
     }
 </style>
