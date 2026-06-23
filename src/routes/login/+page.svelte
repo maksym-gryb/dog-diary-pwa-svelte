@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { auth } from '$lib/firebase.ts.old';
+  // import { auth } from '$lib/firebase.ts.old';
   import { signInWithEmailAndPassword } from 'firebase/auth';
   import { goto } from '$app/navigation';
 
@@ -12,7 +12,7 @@
 
     try {
         console.log({email, password})
-      await signInWithEmailAndPassword(auth, email, password);
+      // await signInWithEmailAndPassword(auth, email, password);
       goto('/day');
     } catch (e) {
       error = 'Login failed';

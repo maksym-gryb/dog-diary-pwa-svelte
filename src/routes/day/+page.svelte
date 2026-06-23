@@ -1,6 +1,6 @@
-<script lang="ts">
+<!-- <script lang="ts">
 	import { onMount } from "svelte";
-	import { auth, db } from "$lib/firebase.ts.old";
+	// import { auth, db } from "$lib/firebase.ts.old";
 	import { onAuthStateChanged } from "firebase/auth";
 	import {
 		collection,
@@ -108,4 +108,4 @@
 			</li>
 		{/each}
 	</ul>
-{/if}
+{/if} -->

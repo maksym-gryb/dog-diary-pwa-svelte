@@ -1,5 +1,6 @@
 <script lang="ts">
-	import favicon from '$lib/assets/favicon.svg';
+  import favicon from "$lib/assets/favicon.svg";
+  import { appState } from "$lib/state/app.svelte";
   // import { onMount } from 'svelte';
 
   // onMount(async () => {
@@ -10,8 +11,7 @@
   //   }
   // });
 
-
-	let { children } = $props();
+  let { children } = $props();
 
   // import { onMount } from 'svelte';
   // import { auth } from '$lib/firebase';
@@ -35,8 +35,33 @@
 <!-- <slot /> -->
 
 <!-- <svelte:head> -->
-  <!-- <link rel="manifest" href="/manifest.json" />
+<!-- <link rel="manifest" href="/manifest.json" />
 	<link rel="icon" href={favicon} /> -->
 <!-- </svelte:head> -->
 
+{#if appState.loading}
+  <section class="sync-bar indicator-bar">
+    loading...
+  </section>
+{/if}
+
+{#if appState.syncing}
+  <section class="load-bar indicator-bar">
+    syncing...
+  </section>
+{/if}
+
 {@render children()}
+
+<style>
+  .indicator-bar {
+    display: flex;
+    align-items: center;
+    justify-items: center;
+    justify-content: center;
+    background-color: burlywood;
+    color: black;
+    border: 1px solid black;
+    padding: 2px 2px 2px 2px;
+  }
+</style>

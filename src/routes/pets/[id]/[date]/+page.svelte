@@ -3,6 +3,7 @@
     import ActivityIcon from "$lib/components/ActivityIcon.svelte";
     import { activityTypes } from "$lib/data/activityTypes";
     import { openDB, STORENAME_ACTIVITIES } from "$lib/indexdb";
+    import { appState } from "$lib/state/app.svelte";
     import { onMount } from "svelte";
 
     type RouteParams = {
@@ -10,10 +11,10 @@
         date: string;
     };
 
-    const petId = $derived(() => (page.params as RouteParams).id);
-    const dateStr = $derived(() => (page.params as RouteParams).date);
+    const petId = $derived((page.params as RouteParams).id);
+    const dateStr = $derived((page.params as RouteParams).date);
 
-    const date = $derived(() => new Date(dateStr()));
+    const date = $derived(() => new Date(dateStr));
     const prevDate = $derived(() => {
         let d = date();
         d.setDate(d.getDate() - 1)
@@ -56,6 +57,8 @@
     onMount(() => {
         // indexdbsetup
 
+        appState.loading = true;
+
         let request = openDB();
 
         request.onsuccess = () => {
@@ -86,6 +89,8 @@
     });
 
     function loadData() {
+        appState.loading = true;
+
         const tx = db.transaction(STORENAME_ACTIVITIES, "readonly");
         const store = tx.objectStore(STORENAME_ACTIVITIES);
 
@@ -98,13 +103,13 @@
             activities = req.result?.filter((x) => !x.isDeleted) ?? [];
             const deletedNum = req.result?.filter((x) => x.isDeleted).length;
             console.log(`DELETE ITEMS IN STORE: ${deletedNum}`);
-            loading = false;
+            appState.loading = false;
         };
 
         req.onerror = (ev) => {
             console.error("FAILED TO LOAD ACTIVITIES");
-            loading = false;
-            error = true;
+            appState.loading = false;
+            // error = true;
             console.log(ev);
         };
     }
@@ -139,7 +144,7 @@
                     time: activity.time,
                     date: activity.date,
                     activity: activity.activity,
-                    petId: petId(),
+                    petId: petId,
                     isDeleted: true,
                 });
             }
@@ -160,7 +165,7 @@
                 time: time,
                 date: date,
                 activity: act,
-                petId: petId(),
+                petId: petId,
             });
 
             req.onsuccess = (ev) => {
@@ -172,7 +177,7 @@
                         time: time,
                         date: date,
                         activity: act,
-                        petId: petId(),
+                        petId: petId,
                     },
                 ];
 
@@ -214,6 +219,9 @@
         openTimeslot =
             openTimeslot === selectedTimeslot ? "" : selectedTimeslot;
     }
+    function clearTimeslot() {
+        openTimeslot = "";
+    }
 
     const timeslots = Array.from({ length: 48 }, (_, i) => {
         const minute = ((i % 2) * 30).toString();
@@ -223,10 +231,12 @@
     });
 </script>
 
+<svelte:body onclick={clearTimeslot} />
+
 <h1>
-    <a href="/pets/{petId()}/{formatDate(prevDate())}" class="date-nav-btn" aria-label="Back">&#9664</a>
+    <a href="/pets/{petId}/{formatDate(prevDate())}" class="date-nav-btn" aria-label="Back">&#9664</a>
     <span>{formatDate(date())}</span>
-    <a href="/pets/{petId()}/{formatDate(nextDate())}" class="date-nav-btn" aria-label="Forward">&#9654</a>
+    <a href="/pets/{petId}/{formatDate(nextDate())}" class="date-nav-btn" aria-label="Forward">&#9654</a>
 </h1>
 
 {#each timeslots as timeslot}
@@ -240,7 +250,10 @@
             nearestTimeslots.includes(timeslot) && "current",
             openTimeslot === timeslot && "open",
         ]}
-        onclick={() => toggleTimeslot(timeslot)}
+        onclick={(e) =>{
+            e.stopPropagation();
+            toggleTimeslot(timeslot);
+        } }
     >
         <span class="timeslot-time">{timeslot}</span>
         <span class="timeslot-activities">
