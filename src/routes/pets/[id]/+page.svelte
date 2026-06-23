@@ -53,15 +53,15 @@
         };
 
         document.addEventListener("visibilitychange", handleVisibilityChange);
-
-        // scroll to current timeslots
-        scrollToCurrentTimeslot();
+        window.addEventListener("load", scrollToCurrentTimeslot);
 
         return () => {
             document.removeEventListener(
                 "visibilitychange",
                 handleVisibilityChange,
             );
+
+          window.removeEventListener("load", scrollToCurrentTimeslot);
         };
     });
 
