@@ -4,5 +4,7 @@ export const appState = $state({
     loading: false,
     syncing: false,
     message: "",
-    checkSync: false
+    checkSync: false,
+    user: null,
+    isOnline: false
 });
