@@ -1,9 +1,9 @@
-import { auth } from '$lib/firebase';
 import {
     GoogleAuthProvider,
     signInWithPopup,
     signOut
 } from 'firebase/auth';
+import { auth } from './firebase';
 
 const provider = new GoogleAuthProvider();
 

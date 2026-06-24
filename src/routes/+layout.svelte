@@ -1,6 +1,7 @@
 <script lang="ts">
   import favicon from "$lib/assets/favicon.svg";
   import { appState } from "$lib/state/app.svelte";
+  import "$lib/store/auth";// required for hooking onAuthStateChange(...)
   // import { onMount } from 'svelte';
 
   // onMount(async () => {
@@ -42,7 +43,7 @@
       return;
     }
 
-    await syncToFirestore();
+    syncToFirestore();
   });
 
   // import { onMount } from 'svelte';
@@ -66,16 +67,20 @@
 
 <nav class="header-nav">
   <a class="header-nav-item" href="/">home</a>
-  <a class="header-nav-item" href="/login">login</a>
+  {#if !$appState.user}
+    <a class="header-nav-item" href="/login">login</a>
+  {:else}
+    <a class="header-nav-item" href="/profile">profile</a>
+  {/if}
 </nav>
 
-{#if appState.loading}
+{#if $appState.loading}
   <section class="sync-bar indicator-bar">
     loading...
   </section>
 {/if}
 
-{#if appState.syncing}
+{#if $appState.syncing}
   <section class="load-bar indicator-bar">
     syncing...
   </section>

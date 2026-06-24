@@ -1,11 +1,15 @@
 import { writable } from 'svelte/store';
+import { onAuthStateChanged, type User } from 'firebase/auth';
 import { auth } from '$lib/firebase';
-import { onAuthStateChanged } from 'firebase/auth';
+import { appState } from '$lib/state/app.svelte';
 
-export const user = writable(null);
-export const authLoading = writable(true);
+// export const user = writable<User | null>(null);
+// export const authLoading = writable(true);
 
 onAuthStateChanged(auth, (firebaseUser) => {
-    user.set(firebaseUser);
-    authLoading.set(false);
+    appState.update(state => ({
+        ...state,
+        user: firebaseUser,
+        online: true
+    }));
 });
