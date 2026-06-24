@@ -11,7 +11,39 @@
   //   }
   // });
 
+  function syncToFirestore() {
+    console.error("TODO: SYNC-TO-FIRESTORE");
+  }
+
   let { children } = $props();
+
+  window.addEventListener('online', () => {
+      appState.update(s => ({
+          ...s,
+          online: true,
+          hasSyncData: true
+      }));
+  });
+
+  window.addEventListener('offline', () => {
+      appState.update(s => ({
+          ...s,
+          online: false
+      }));
+  });
+
+  appState.subscribe(async state => {
+    if(
+      !state.hasSyncData ||
+      !state.user ||
+      !state.online ||
+      state.syncing
+    ) {
+      return;
+    }
+
+    await syncToFirestore();
+  });
 
   // import { onMount } from 'svelte';
   // import { auth } from '$lib/firebase';
@@ -64,12 +96,12 @@
   }
 
   .header-nav {
-    background-color: orange;
+    background-color: #88bb88;
     position: sticky;
     top: 0px;
     margin: 0px;
     padding: 0px;
-    padding: 0.5rem;
+    padding: 0px;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -85,6 +117,6 @@
     font-size: 30px;
     padding: 1rem;
     background-color: green;
-    border-radius: 50%;
+    border-radius: 5px;
   }
 </style>
