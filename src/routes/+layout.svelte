@@ -32,12 +32,10 @@
   // });
 </script>
 
-<!-- <slot /> -->
-
-<!-- <svelte:head> -->
-<!-- <link rel="manifest" href="/manifest.json" />
-	<link rel="icon" href={favicon} /> -->
-<!-- </svelte:head> -->
+<nav class="header-nav">
+  <a class="header-nav-item" href="/">home</a>
+  <a class="header-nav-item" href="/login">login</a>
+</nav>
 
 {#if appState.loading}
   <section class="sync-bar indicator-bar">
@@ -63,5 +61,30 @@
     color: black;
     border: 1px solid black;
     padding: 2px 2px 2px 2px;
+  }
+
+  .header-nav {
+    background-color: orange;
+    position: sticky;
+    top: 0px;
+    margin: 0px;
+    padding: 0px;
+    padding: 0.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    /*
+    justify-content: space-between;
+    */
+    gap: 3rem;
+  }
+
+  .header-nav-item {
+    text-decoration: none;
+    color: white;
+    font-size: 30px;
+    padding: 1rem;
+    background-color: green;
+    border-radius: 50%;
   }
 </style>

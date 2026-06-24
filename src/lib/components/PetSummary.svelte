@@ -33,3 +33,23 @@
         {/each}
     </div>
 </fieldset>
+
+<style>
+  legend {
+    font-size: 40px;
+    padding: 0px;
+    margin: 0px;
+    border-radius: 5px;
+  }
+
+  legend:hover {
+    background-color: darkgreen;
+    box-shadow: 12px 5px 5px black;
+  }
+
+  a {
+    text-decoration: none;
+    color: blue;
+    padding: 3px;
+  }
+</style>

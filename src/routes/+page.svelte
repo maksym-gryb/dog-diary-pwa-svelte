@@ -61,3 +61,9 @@
 {#if results.length == 0}
     <PetDetails isCreate={true} reloadDataCallback={loadPetData} />
 {/if}
+
+<style>
+  * {
+    font-size: 24px;
+  }
+</style>

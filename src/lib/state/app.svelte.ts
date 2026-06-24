@@ -2,5 +2,7 @@
 
 export const appState = $state({
     loading: false,
-    syncing: false
+    syncing: false,
+    message: "",
+    checkSync: false
 });
