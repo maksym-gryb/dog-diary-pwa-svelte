@@ -1,7 +1,9 @@
 <script lang="ts">
   import favicon from "$lib/assets/favicon.svg";
+    import { firestore } from "$lib/firebase";
   import { appState } from "$lib/state/app.svelte";
   import "$lib/store/auth";// required for hooking onAuthStateChange(...)
+    import { collection, getDocs } from "firebase/firestore";
   // import { onMount } from 'svelte';
 
   // onMount(async () => {
@@ -12,13 +14,36 @@
   //   }
   // });
 
-  function syncToFirestore() {
+  async function syncFirestore() {
+    console.log("starting sync");
+
+    appState.update(state => ({
+      ...state,
+      syncing: true,
+    }));
+
     console.error("TODO: SYNC-TO-FIRESTORE");
+
+    const snap = await getDocs(collection(firestore, "diary"));
+
+    const data = snap.docs.map(d => ({
+        id: d.id,
+        ...d.data()
+    }));
+
+    // end sync
+    console.log("sync end")
+    appState.update(state => ({
+      ...state,
+      syncing: false,
+      hasSyncData: false
+    }));
   }
 
   let { children } = $props();
 
   window.addEventListener('online', () => {
+    console.warn("ONLINE");
       appState.update(s => ({
           ...s,
           online: true,
@@ -27,6 +52,7 @@
   });
 
   window.addEventListener('offline', () => {
+    console.warn("OFFLINE");
       appState.update(s => ({
           ...s,
           online: false
@@ -43,7 +69,7 @@
       return;
     }
 
-    syncToFirestore();
+    await syncFirestore();
   });
 
   // import { onMount } from 'svelte';

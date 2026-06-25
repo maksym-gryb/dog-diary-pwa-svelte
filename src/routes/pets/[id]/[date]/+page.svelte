@@ -57,7 +57,10 @@
     onMount(() => {
         // indexdbsetup
 
-        appState.loading = true;
+        appState.update(state => ({
+            ...state,
+            loading: true
+        }));
 
         let request = openDB();
 
@@ -89,7 +92,10 @@
     });
 
     function loadData() {
-        appState.loading = true;
+        appState.update(state => ({
+            ...state,
+            loading: true
+        }));
 
         const tx = db.transaction(STORENAME_ACTIVITIES, "readonly");
         const store = tx.objectStore(STORENAME_ACTIVITIES);
@@ -103,12 +109,18 @@
             activities = req.result?.filter((x) => !x.isDeleted) ?? [];
             const deletedNum = req.result?.filter((x) => x.isDeleted).length;
             console.log(`DELETE ITEMS IN STORE: ${deletedNum}`);
-            appState.loading = false;
+            appState.update(state => ({
+                ...state,
+                loading: false
+            }));
         };
 
         req.onerror = (ev) => {
             console.error("FAILED TO LOAD ACTIVITIES");
-            appState.loading = false;
+            appState.update(state => ({
+                ...state,
+                loading: false
+            }));
             // error = true;
             console.log(ev);
         };
