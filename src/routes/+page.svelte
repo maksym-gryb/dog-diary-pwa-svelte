@@ -1,6 +1,6 @@
 <script lang="ts">
     import Loading from "$lib/components/Loading.svelte";
-    import PetDetails from "$lib/components/PetDetails.svelte";
+    import PetCreate from "$lib/components/PetCreate.svelte";
     import PetSummary from "$lib/components/PetSummary.svelte";
     import { openDB, STORENAME_PETS } from "$lib/indexdb";
     import { onMount } from "svelte";
@@ -58,9 +58,7 @@
 </ul>
 
 <!-- if there are no results, means user/pet setup is requried -->
-{#if results.length == 0}
-    <PetDetails isCreate={true} reloadDataCallback={loadPetData} />
-{/if}
+<PetCreate isCreate={true} reloadDataCallback={loadPetData} />
 
 <style>
   * {

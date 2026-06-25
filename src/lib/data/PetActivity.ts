@@ -1,12 +1,10 @@
 import type { ActivityType } from "./activityTypes"
+import { SyncData } from "./SyncData"
 
-type PetActivity = {
+interface PetActivity extends SyncData {
     id: string,
     petId: string,
     type: ActivityType,
     date: string,
     time: string,
-    syncStatus?: string,
-    timestamp?: number,
-    isDeleted?: boolean
 }

@@ -10,11 +10,11 @@ export function openDB(): IDBOpenDBRequest {
         const database = request.result;
 
         if (!database.objectStoreNames.contains(STORENAME_PETS)) {
-            database.createObjectStore(STORENAME_PETS, { keyPath: 'id', autoIncrement: true });
+            database.createObjectStore(STORENAME_PETS, { keyPath: 'id' });
         }
 
         if (!database.objectStoreNames.contains(STORENAME_ACTIVITIES)) {
-            database.createObjectStore(STORENAME_ACTIVITIES, { keyPath: 'id', autoIncrement: true });
+            database.createObjectStore(STORENAME_ACTIVITIES, { keyPath: 'id' });
         }
     };
 
