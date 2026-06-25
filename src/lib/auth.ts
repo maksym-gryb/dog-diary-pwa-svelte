@@ -4,10 +4,18 @@ import {
     signOut
 } from 'firebase/auth';
 import { auth } from './firebase';
+import { appState } from '$lib/state/app.svelte';
 
 const provider = new GoogleAuthProvider();
 
 export async function login() {
+    if(appState.loginRunning) {
+      return;
+    }
+    appState.update(state => ({
+      ...state,
+      loginRunning: true
+    }));
     try {
         const result = await signInWithPopup(auth, provider);
         return result.user;
@@ -15,6 +23,11 @@ export async function login() {
         console.error(err);
         throw err;
     }
+
+    appState.update(state => ({
+      ...state,
+      loginRunning: false
+    }));
 }
 
 export async function logout() {

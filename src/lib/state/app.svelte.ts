@@ -10,6 +10,7 @@ export interface AppState {
   checkSync: boolean;
   user: User | null;
   online: boolean;
+  loginProcess: boolean;
 }
 
 export const appState = writable<AppState>({
@@ -19,5 +20,6 @@ export const appState = writable<AppState>({
     message: "",
     checkSync: false,
     user: null,
-    online: false
+    online: false,
+    loginProcess: false
 });
