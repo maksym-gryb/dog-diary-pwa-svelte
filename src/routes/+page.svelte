@@ -58,7 +58,7 @@
 </ul>
 
 <!-- if there are no results, means user/pet setup is requried -->
-<PetCreate isCreate={true} reloadDataCallback={loadPetData} />
+<PetCreate reloadDataCallback={loadPetData} />
 
 <style>
   * {

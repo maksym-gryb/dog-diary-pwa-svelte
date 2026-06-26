@@ -1,17 +1,24 @@
 <script lang="ts">
+    import type { PetData } from "$lib/data/PetData";
+    import { SyncStatus } from "$lib/data/SyncData";
     import { openDB, STORENAME_PETS } from "$lib/indexdb";
     import { onMount } from "svelte";
 
     type Props = {
-        isCreate: boolean;
-        petData?: PetData;
-        reloadDataCallback?: Function;
+        reloadDataCallback: Function;
     };
 
-    let { isCreate, petData, reloadDataCallback }: Props = $props();
+    let { reloadDataCallback }: Props = $props();
 
-    let name = $state("");
-    name = petData && petData?.name ? petData.name : "";
+    let pet: PetData = {
+        id: crypto.randomUUID(),
+        name: '',
+        owners: [],
+        caretakers: [],
+        syncStatus: SyncStatus.pending,
+        timestamp: Date.now(),
+        isDeleted: false
+    };
 
     let db: IDBDatabase;
 
@@ -23,9 +30,9 @@
     });
 
     function savePet() {
-        if (!name) {
+        if (!pet.name) {
             console.error("missing data to save");
-            console.log(name);
+            console.log(pet.name);
             return;
         }
 
@@ -35,28 +42,24 @@
         const tx = db.transaction(STORENAME_PETS, "readwrite");
         const store = tx.objectStore(STORENAME_PETS);
 
-        const req = store.add({
-            name: name,
-        });
+        const req = store.add(pet);
 
         req.onsuccess = () => reloadDataCallback?.();
         req.onerror = (e) => console.log(e);
     }
 </script>
 
-{#if isCreate}
-    <fieldset>
-        <legend>
-            {isCreate ? "NEW PET" : name}
-        </legend>
+<fieldset>
+    <legend>
+        New Pet
+    </legend>
 
-        <label>
-            name:
-            <input type="text" bind:value={name} />
-        </label>
+    <label>
+        name:
+        <input type="text" bind:value={pet.name} />
+    </label>
 
-        <br />
+    <br />
 
-        <button onclick={savePet}>save</button>
-    </fieldset>
-{/if}
+    <button onclick={savePet}>save</button>
+</fieldset>

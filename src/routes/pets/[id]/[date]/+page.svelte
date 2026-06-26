@@ -1,7 +1,9 @@
 <script lang="ts">
     import { page } from "$app/state";
     import ActivityIcon from "$lib/components/ActivityIcon.svelte";
-    import { activityTypes } from "$lib/data/activityTypes";
+    import { activityTypes, type ActivityType } from "$lib/data/activityTypes";
+    import type { PetActivity } from "$lib/data/PetActivity";
+    import { SyncStatus } from "$lib/data/SyncData";
     import { openDB, STORENAME_ACTIVITIES } from "$lib/indexdb";
     import { appState } from "$lib/state/app.svelte";
     import { onMount } from "svelte";
@@ -26,13 +28,13 @@
         return d;
     });
 
-    let activities = $state<any[]>([]);
+    let activities = $state<PetActivity[]>([]);
 
     let activitySet = $derived.by(() => {
         const set = new Set<string>();
 
         for (const a of activities) {
-            set.add(`${a.date}|${a.time}|${a.activity}`);
+            set.add(`${a.date}|${a.time}|${a.type}`);
         }
 
         return set;
@@ -137,28 +139,33 @@
         scrollTarget?.scrollIntoView({ behavior: "smooth" });
     }
 
-    function toggleActivity(date: string, time: string, act: string) {
+    function toggleActivity(date: string, time: string, act: ActivityType) {
         const existing = activities.filter(
             (a) =>
                 a.date == date &&
                 a.time == time &&
-                a.activity == act &&
-                (!a.isDeleted || a.isDeleted === false),
+                a.type == act &&
+                !a.isDeleted
         );
-        if (existing.length > 0) {
+        if (existing.length > 0) { // TODO: not super accurate, as we can have delete items too and they should just be toggled
             const tx = db.transaction(STORENAME_ACTIVITIES, "readwrite");
             const store = tx.objectStore(STORENAME_ACTIVITIES);
 
             for (const activity of existing) {
                 console.log(activity);
-                store.put({
+
+                const actv :PetActivity = {
                     id: activity.id,
-                    time: activity.time,
+                    petId: activity.petId,
+                    type: activity.type,
                     date: activity.date,
-                    activity: activity.activity,
-                    petId: petId,
-                    isDeleted: true,
-                });
+                    time: activity.time,
+                    syncStatus: SyncStatus.pending,
+                    timestamp: Date.now(),
+                    isDeleted: true
+                };
+
+                store.put(actv);
             }
 
             tx.oncomplete = () => {
@@ -173,24 +180,25 @@
             const tx = db.transaction(STORENAME_ACTIVITIES, "readwrite");
             const store = tx.objectStore(STORENAME_ACTIVITIES);
 
-            const req = store.add({
-                time: time,
-                date: date,
-                activity: act,
-                petId: petId,
-            });
+            const now = Date.now();
 
-            req.onsuccess = (ev) => {
-                const id = (ev.target as IDBRequest).result;
+            const actv :PetActivity = {
+                id: crypto.randomUUID(),
+                petId: petId,
+                type: act,
+                date: date,
+                time: time,
+                syncStatus: SyncStatus.pending,
+                timestamp: now,
+                isDeleted: false
+            };
+
+            const req = store.add(actv);
+
+            req.onsuccess = () => {
                 activities = [
                     ...activities,
-                    {
-                        id: id,
-                        time: time,
-                        date: date,
-                        activity: act,
-                        petId: petId,
-                    },
+                    actv
                 ];
 
                 console.log(`Added: ${date}@${time} // ${act}`);

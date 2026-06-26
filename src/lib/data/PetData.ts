@@ -1,6 +1,6 @@
-import { SyncData } from "./SyncData"
+import type { SyncData } from "./SyncData";
 
-interface PetData extends SyncData {
+export interface PetData extends SyncData {
     id?: string;
     name?: string;
 

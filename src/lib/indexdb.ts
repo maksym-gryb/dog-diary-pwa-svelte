@@ -1,7 +1,7 @@
 const DB_NAME = 'dog-diary';
 export const STORENAME_PETS = 'pets';
 export const STORENAME_ACTIVITIES = 'activities';
-const DB_VERSION = 4;
+const DB_VERSION = 5;
 
 export function openDB(): IDBOpenDBRequest {
     const request = indexedDB.open(DB_NAME, DB_VERSION);
