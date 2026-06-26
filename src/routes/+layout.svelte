@@ -28,16 +28,7 @@
       syncing: true,
     }));
 
-    // console.error("TODO: SYNC-FIRESTORE");
-
-    // TODO: fetch will come later
-    // const snap = await getDocs(collection(firestore, "diary"));
-
     try {
-      // const data = snap.docs.map(d => ({
-      //     id: d.id,
-      //     ...d.data()
-      // }));
       const dbr = openDB();
 
       dbr.onsuccess = () => {
@@ -47,16 +38,25 @@
 
         const req = store.getAll();
         req.onsuccess = async () => {
-          const activities = req.result?.filter((x) => !x.isDeleted) ?? [];
+          const activitiesLocal = req.result ?? [];
+          const snap = await getDocs(collection(firestore, STORENAME_ACTIVITIES))
+          const activitiesRemote = snap.docs.map(d => ({
+            id: d.id,
+            ...d.date()
+          }));
+
+          // COMPARE SYNC DATA and evaluate which way a document needs to go
+
 
           const batch = writeBatch(firestore);
 
           for (const activity of activities) {
-            const ref = doc(firestore, "activities", activity.id);
+            const ref = doc(firestore, STORENAME_ACTIVITIES, activity.id);
             batch.set(ref, activity);
           }
 
-          await batch.commit();
+          // TODO: later
+          // await batch.commit();
         };
 
         req.onerror = (ev) => {
