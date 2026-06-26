@@ -1,9 +1,10 @@
 <script lang="ts">
   import favicon from "$lib/assets/favicon.svg";
-    import { firestore } from "$lib/firebase";
+  import { firestore } from "$lib/firebase";
+  import { openDB, STORENAME_ACTIVITIES, STORENAME_PETS } from "$lib/indexdb";
   import { appState } from "$lib/state/app.svelte";
-  import "$lib/store/auth";// required for hooking onAuthStateChange(...)
-    import { collection, getDocs } from "firebase/firestore";
+  import "$lib/store/auth"; // required for hooking onAuthStateChange(...)
+  import { collection, doc, getDocs, writeBatch } from "firebase/firestore";
   // import { onMount } from 'svelte';
 
   // onMount(async () => {
@@ -15,57 +16,88 @@
   // });
 
   async function syncFirestore() {
+    if ($appState.syncing) {
+      return;
+    }
+
     console.log("starting sync");
 
-    appState.update(state => ({
+
+    appState.update((state) => ({
       ...state,
       syncing: true,
     }));
 
-    console.error("TODO: SYNC-TO-FIRESTORE");
+    // console.error("TODO: SYNC-FIRESTORE");
 
-    const snap = await getDocs(collection(firestore, "diary"));
+    // TODO: fetch will come later
+    // const snap = await getDocs(collection(firestore, "diary"));
 
-    const data = snap.docs.map(d => ({
-        id: d.id,
-        ...d.data()
-    }));
+    try {
+      // const data = snap.docs.map(d => ({
+      //     id: d.id,
+      //     ...d.data()
+      // }));
+      const dbr = openDB();
+
+      dbr.onsuccess = () => {
+        const idb = dbr.result;
+        const tx = idb.transaction(STORENAME_ACTIVITIES, "readwrite");
+        const store = tx.objectStore(STORENAME_ACTIVITIES);
+
+        const req = store.getAll();
+        req.onsuccess = async () => {
+          const activities = req.result?.filter((x) => !x.isDeleted) ?? [];
+
+          const batch = writeBatch(firestore);
+
+          for (const activity of activities) {
+            const ref = doc(firestore, "activities", activity.id);
+            batch.set(ref, activity);
+          }
+
+          await batch.commit();
+        };
+
+        req.onerror = (ev) => {
+          console.error("FAILED TO LOAD ACTIVITIES", ev);
+        };
+      };
+      dbr.onerror = (e) => console.log(e);
+    } catch {
+      // intentionally empty
+    }
 
     // end sync
-    console.log("sync end")
-    appState.update(state => ({
+    console.log("sync end");
+    appState.update((state) => ({
       ...state,
       syncing: false,
-      hasSyncData: false
+      hasSyncData: false,
     }));
   }
 
   let { children } = $props();
 
-  window.addEventListener('online', () => {
+  window.addEventListener("online", () => {
     console.warn("ONLINE");
-      appState.update(s => ({
-          ...s,
-          online: true,
-          hasSyncData: true
-      }));
+    appState.update((s) => ({
+      ...s,
+      online: true,
+      hasSyncData: true,
+    }));
   });
 
-  window.addEventListener('offline', () => {
+  window.addEventListener("offline", () => {
     console.warn("OFFLINE");
-      appState.update(s => ({
-          ...s,
-          online: false
-      }));
+    appState.update((s) => ({
+      ...s,
+      online: false,
+    }));
   });
 
-  appState.subscribe(async state => {
-    if(
-      !state.hasSyncData ||
-      !state.user ||
-      !state.online ||
-      state.syncing
-    ) {
+  appState.subscribe(async (state) => {
+    if (!state.hasSyncData || !state.user || !state.online || state.syncing) {
       return;
     }
 
@@ -101,15 +133,11 @@
 </nav>
 
 {#if $appState.loading}
-  <section class="sync-bar indicator-bar">
-    loading...
-  </section>
+  <section class="sync-bar indicator-bar">loading...</section>
 {/if}
 
 {#if $appState.syncing}
-  <section class="load-bar indicator-bar">
-    syncing...
-  </section>
+  <section class="load-bar indicator-bar">syncing...</section>
 {/if}
 
 {@render children()}
