@@ -55,8 +55,12 @@
         req.onsuccess = () => {
           const pets = req.result;
           for (let i = 0; i < pets.length; i++) {
-            if(pets[i].owners.length === 0) {
-              pets[i].owners = [$appState.user?.uid]
+            if(pets[i].members.length === 0) {
+              pets[i].members = [{
+                id: $appState.user?.uid,
+                name: $appState.user?.displayName,
+                type: "owner"
+              }]
               store.put(pets[i]);
             }
           }

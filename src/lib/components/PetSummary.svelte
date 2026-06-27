@@ -17,22 +17,16 @@
 <fieldset>
     <legend><a href="/pets/{data.id}/{todayStr}"> {data.name}</a> </legend>
     <div>
-        owners :
-        {#if data.owners.length === 0}
+        Members:
+        {#if data.members.length === 0}
         NONE
+        {:else}
+        <ul>
+            {#each data.members as m}
+                <li>{m.name == null || m.name == "" ? m.id : m.name} => {m.type}</li>
+            {/each}
+        </ul>
         {/if}
-        {#each data.owners as o}
-            {o}
-        {/each}
-    </div>
-    <div>
-        caretakers: 
-        {#if data.caretakers?.length ?? 0 === 0}
-        NONE
-        {/if}
-        {#each data.caretakers as o}
-            {o}
-        {/each}
     </div>
 </fieldset>
 

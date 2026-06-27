@@ -13,8 +13,7 @@
     let pet: PetData = {
         id: crypto.randomUUID(),
         name: '',
-        owners: [],
-        caretakers: [],
+        members: [],
         syncStatus: SyncStatus.pending,
         timestamp: Date.now(),
         isDeleted: false
