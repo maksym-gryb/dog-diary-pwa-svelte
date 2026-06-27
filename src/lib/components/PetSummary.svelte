@@ -1,4 +1,6 @@
 <script lang="ts">
+    import type { PetData } from "$lib/data/PetData";
+
     type Props = {
         data: PetData;
     };
@@ -16,7 +18,7 @@
     <legend><a href="/pets/{data.id}/{todayStr}"> {data.name}</a> </legend>
     <div>
         owners :
-        {#if data.owners?.length ?? 0 === 0}
+        {#if data.owners.length === 0}
         NONE
         {/if}
         {#each data.owners as o}

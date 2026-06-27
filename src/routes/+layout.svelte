@@ -106,9 +106,9 @@
               download.push(remote);
             } else if (!remote) {
               upload.push(local);
-            } else if (local.updatedAt > remote.updatedAt) {
+            } else if (local.timestamp > remote.timestamp) {
               upload.push(local);
-            } else if (remote.updatedAt > local.updatedAt) {
+            } else if (remote.timestamp > local.timestamp) {
               download.push(remote);
             }
           }
