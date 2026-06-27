@@ -20,9 +20,57 @@
       return;
     }
 
+    let pending = 2;
+    function done () {
+      pending--;
+
+      if (pending === 0) {
+
+    // end sync
+    console.log("sync end");
+    appState.update((state) => ({
+      ...state,
+      syncing: false,
+      hasSyncData: false,
+    }));
+
+      }
+    }
+
     console.log("starting sync");
 
+    { 
+      // populate owners
+      const dbr = openDB();
+      dbr.onerror = (err) => console.error(err);
+      dbr.onsuccess = () => {
+        const idb = dbr.result;
+        const s = STORENAME_PETS;
+        const store = idb.transaction(s, "readwrite").objectStore(s);
+        const req = store.getAll();
+        req.onerror = (err) => {
+          console.error(err);
+          done();
+        }
+        req.onsuccess = () => {
+          const pets = req.result;
+          for (let i = 0; i < pets.length; i++) {
+            if(pets[i].owners.length === 0) {
+              pets[i].owners = [$appState.user?.uid]
+              store.put(pets[i]);
+            }
+          }
 
+          syncFirestoreStore(STORENAME_PETS, done);
+        }
+      }
+    }
+
+    syncFirestoreStore(STORENAME_ACTIVITIES, done);
+  }
+
+  function syncFirestoreStore(storename: string, done: Function) {
+    console.log("[+] SYNCINNG ", storename);
     appState.update((state) => ({
       ...state,
       syncing: true,
@@ -33,48 +81,74 @@
 
       dbr.onsuccess = () => {
         const idb = dbr.result;
-        const tx = idb.transaction(STORENAME_ACTIVITIES, "readwrite");
-        const store = tx.objectStore(STORENAME_ACTIVITIES);
+        const tx = idb.transaction(storename, "readwrite");
+        const store = tx.objectStore(storename);
 
         const req = store.getAll();
         req.onsuccess = async () => {
-          const activitiesLocal = req.result ?? [];
-          const snap = await getDocs(collection(firestore, STORENAME_ACTIVITIES))
-          const activitiesRemote = snap.docs.map(d => ({
-            id: d.id,
-            ...d.date()
-          }));
+          console.log("[+] Comparing stores")
+          const localMap = new Map(req.result.map((x) => [x.id, x]));
+          const snap = await getDocs(
+            collection(firestore, storename),
+          );
+          const remoteMap = new Map(snap.docs.map((d) => [d.id, d.data()]));
 
-          // COMPARE SYNC DATA and evaluate which way a document needs to go
+          const allKeys = new Set([...localMap.keys(), ...remoteMap.keys()]);
 
+          const download : any[] = [];
+          const upload: any[] = [];
 
-          const batch = writeBatch(firestore);
+          for (const id of allKeys) {
+            const local = localMap.get(id);
+            const remote = remoteMap.get(id);
 
-          for (const activity of activities) {
-            const ref = doc(firestore, STORENAME_ACTIVITIES, activity.id);
-            batch.set(ref, activity);
+            if (!local) {
+              download.push(remote);
+            } else if (!remote) {
+              upload.push(local);
+            } else if (local.updatedAt > remote.updatedAt) {
+              upload.push(local);
+            } else if (remote.updatedAt > local.updatedAt) {
+              download.push(remote);
+            }
           }
 
-          // TODO: later
-          // await batch.commit();
+          console.log("DOWNLOADS: ", download.length)
+          console.log("UPLOADS: ", upload.length)
+
+          console.log("[-] Stores compare completed")
+
+          console.log("[+] batching firestore")
+          const batch = writeBatch(firestore);
+
+          for (const r of upload) {
+            const ref = doc(firestore, storename, r.id);
+            batch.set(ref, r);
+          }
+
+          await batch.commit();
+          console.log("[-] sent to firestore")
+
+          console.log("[+] updating local indexdb")
+          for (const r of download) {
+            store.put(r)
+          }
+          console.log("[-] local indexdb update complete")
+          done();
         };
 
         req.onerror = (ev) => {
           console.error("FAILED TO LOAD ACTIVITIES", ev);
+          done();
         };
       };
-      dbr.onerror = (e) => console.log(e);
+      dbr.onerror = (e) => {
+        console.log(e);
+        done();
+      }
     } catch {
       // intentionally empty
     }
-
-    // end sync
-    console.log("sync end");
-    appState.update((state) => ({
-      ...state,
-      syncing: false,
-      hasSyncData: false,
-    }));
   }
 
   let { children } = $props();
