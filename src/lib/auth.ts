@@ -5,11 +5,12 @@ import {
 } from 'firebase/auth';
 import { auth } from './firebase';
 import { appState } from '$lib/state/app.svelte';
+import { get } from 'svelte/store';
 
 const provider = new GoogleAuthProvider();
 
 export async function login() {
-    if(appState.loginRunning) {
+    if(get(appState).loginProcess) {
       return;
     }
     appState.update(state => ({
@@ -23,11 +24,12 @@ export async function login() {
         console.error(err);
         throw err;
     }
-
-    appState.update(state => ({
-      ...state,
-      loginRunning: false
-    }));
+    finally{
+        appState.update(state => ({
+        ...state,
+        loginRunning: false
+        }));
+    }
 }
 
 export async function logout() {

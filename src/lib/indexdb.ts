@@ -3,6 +3,7 @@ import type { Member } from "./data/PetData";
 const DB_NAME = 'dog-diary';
 export const STORENAME_PETS = 'pets';
 export const STORENAME_ACTIVITIES = 'activities';
+export const STORENAME_SHARE = 'pet_share';
 const DB_VERSION = 7;
 
 export function openDB(): IDBOpenDBRequest {

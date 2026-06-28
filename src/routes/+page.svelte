@@ -1,7 +1,7 @@
 <script lang="ts">
     import Loading from "$lib/components/Loading.svelte";
     import PetCreate from "$lib/components/PetCreate.svelte";
-    import PetSummary from "$lib/components/PetSummary.svelte";
+    import PetSummary from "../lib/components/PetSummary.svelte";
     import { openDB, STORENAME_PETS } from "$lib/indexdb";
     import { onMount } from "svelte";
 
